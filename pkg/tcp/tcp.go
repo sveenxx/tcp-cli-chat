@@ -16,10 +16,12 @@ type Connection struct {
 
 func broadcastMessage(message string, ConnectionMap ConnectionMap) {
 	for _, connection := range ConnectionMap {
-		_, err := connection.stream.Write([]byte(message + "\n"))
-		if err != nil {
-			return
-		}
+		go func(connection Connection) {
+			_, err := connection.stream.Write([]byte(message + "\n"))
+			if err != nil {
+				return
+			}
+		}(connection)
 	}
 }
 
@@ -54,6 +56,6 @@ func handleConnection(conn net.Conn, connectionMap ConnectionMap) {
 	fmt.Printf("New connection from: %s\n", conn.LocalAddr().String())
 
 	for message.Scan() {
-		go broadcastMessage(message.Text(), connectionMap)
+		broadcastMessage(message.Text(), connectionMap)
 	}
 }

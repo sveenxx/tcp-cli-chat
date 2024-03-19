@@ -26,10 +26,8 @@ func receiveServerOutput(conn net.Conn) {
 		}
 
 		for _, message := range messages {
-			fmt.Println(message)
+			fmt.Println(strings.Trim(message, "\r\n"))
 		}
-
-		fmt.Print("> Enter text: ")
 	}
 }
 
@@ -51,7 +49,6 @@ func sendClientInput(conn net.Conn, nickName string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Print("\n> Enter text: ")
 		message, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
