@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"tcp_server/pkg/tcp"
+	"tcp_chat/pkg/tcp"
 )
 
 func main() {
