@@ -9,53 +9,79 @@ import (
 
 type ConnectionMap map[int]Connection
 
-type Connection struct {
-	stream   net.Conn
-	nickname string
+type Server struct {
+	listenAddr    string
+	listener      net.Listener
+	Msgchan       chan []byte
+	quitchan      chan struct{}
+	connectionMap ConnectionMap
 }
 
-func broadcastMessage(message string, ConnectionMap ConnectionMap) {
-	for _, connection := range ConnectionMap {
-		go func(connection Connection) {
-			_, err := connection.stream.Write([]byte(message + "\n"))
-			if err != nil {
-				return
-			}
-		}(connection)
+type Connection struct {
+	stream net.Conn
+}
+
+func (s *Server) BroadcastMessage(message string) {
+	for _, c := range s.connectionMap {
+		go s.WriteMessage(c, []byte(message+"\n"))
 	}
 }
 
-func CreateTCPServer(port string) {
-	l, err := net.Listen("tcp", ":"+port)
+func (s *Server) WriteMessage(c Connection, b []byte) {
+	_, err := c.stream.Write(b)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func CreateServer(host string, port string) *Server {
+	return &Server{
+		listenAddr:    host + ":" + port,
+		Msgchan:       make(chan []byte, 10),
+		quitchan:      make(chan struct{}),
+		connectionMap: make(ConnectionMap),
+	}
+}
+
+func (s *Server) Start() error {
+	listener, err := net.Listen("tcp", s.listenAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer listener.Close()
 
-	connectionMap := make(ConnectionMap)
+	s.listener = listener
 
-	connId := 0
+	go s.connLoop()
 
+	<-s.quitchan
+	close(s.Msgchan)
+
+	return nil
+}
+
+func (s *Server) connLoop() {
 	for {
-		conn, err := l.Accept()
+		conn, err := s.listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
-		connId++
 
-		connectionMap[connId] = Connection{stream: conn, nickname: ""}
-
-		go handleConnection(conn, connectionMap)
+		go s.handleConn(conn)
 	}
 }
 
-func handleConnection(conn net.Conn, connectionMap ConnectionMap) {
-	defer conn.Close()
+func (s *Server) handleConn(c net.Conn) {
+	defer c.Close()
 
-	message := bufio.NewScanner(conn)
+	s.connectionMap[len(s.connectionMap)] = Connection{stream: c}
 
-	fmt.Printf("New connection from: %s\n", conn.LocalAddr().String())
+	message := bufio.NewScanner(c)
+
+	fmt.Printf("New connection from: %s\n", c.LocalAddr().String())
 
 	for message.Scan() {
-		broadcastMessage(message.Text(), connectionMap)
+		s.Msgchan <- message.Bytes()
 	}
 }
