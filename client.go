@@ -21,8 +21,8 @@ func receiveServerOutput(conn net.Conn) {
 
 		messages = append(messages, reader.Text())
 
-		if len(messages) > 10 {
-			messages = messages[len(messages)-10:]
+		if len(messages) > 40 {
+			messages = messages[len(messages)-40:]
 		}
 
 		for _, message := range messages {
