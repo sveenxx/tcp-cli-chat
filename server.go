@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"tcp_chat/pkg/tcp"
+	"tcp-cli-chat/pkg/tcp"
 )
 
 func main() {

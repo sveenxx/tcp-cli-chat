@@ -1,4 +1,4 @@
-module tcp_chat
+module tcp-cli-chat
 
 go 1.22.1
 
