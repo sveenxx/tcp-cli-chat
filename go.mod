@@ -1,4 +1,4 @@
-module tcp-cli-chat
+module github.com/sveenxx/tcp-cli-chat
 
 go 1.22.1
 

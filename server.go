@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/sveenxx/tcp-cli-chat/pkg/tcp"
 	"log"
-	"tcp-cli-chat/pkg/tcp"
 )
 
 func main() {
